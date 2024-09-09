@@ -3,7 +3,7 @@ import cors from 'cors';
 import z, { string } from 'zod';
 import { PrismaClient } from "@prisma/client";
 import { verifyJwt } from "../middlewares";
-import { ExpressJwtRequest, Request } from "express-jwt";
+import { Request } from "express-jwt";
 //  @ts-ignore
 import youtubesearchapi from 'youtube-search-api';
  
