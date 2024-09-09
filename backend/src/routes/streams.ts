@@ -156,10 +156,11 @@ StreamRouter.get('/',verifyJwt,async (req:Request,res) => {
         })
     }
     try{
-        const [streams,activeStream] = await Promise.all([await prisma.stream.findMany({
+        let [streams,activeStream] = await Promise.all([await prisma.stream.findMany({
             where:{
                 userId:user.id as string,
-                played:false
+                played:false,
+                currentlyPlayed:false
             },
             include:{
                 _count:{
@@ -177,6 +178,7 @@ StreamRouter.get('/',verifyJwt,async (req:Request,res) => {
             where:{
                 userId:creatorId as string,
                 stream:{
+                    currentlyPlayed:true,
                     played:false
                 }
             },
@@ -204,6 +206,8 @@ StreamRouter.get('/',verifyJwt,async (req:Request,res) => {
 
 StreamRouter.get('/next',async (req,res) => {
     const creatorId = req.query.creatorId;
+    const fromButton = req.query.fromButton;
+    
     if(!creatorId){
         return res.json({
             message : "Invalid creator"
@@ -221,6 +225,33 @@ StreamRouter.get('/next',async (req,res) => {
     }
 
     try{
+        if(fromButton){
+            const PrevMostUpvotedStream = await prisma.stream.findFirst({
+                where:{
+                    userId:creator.id as string,
+                    played:false,
+                    currentlyPlayed:true
+                },
+                orderBy:{
+                    upvotes:{
+                        _count:'desc'
+                    }
+                }
+                
+            })
+            console.log(PrevMostUpvotedStream);
+            if(PrevMostUpvotedStream){
+                await prisma.stream.update({
+                    where:{
+                        id:PrevMostUpvotedStream.id
+                    },
+                    data:{
+                        played:true,
+                        currentlyPlayed:false
+                    }
+                })
+            }
+        }
         const mostUpvotedStream = await prisma.stream.findFirst({
             where:{
                 userId:creator.id as string,
@@ -233,6 +264,7 @@ StreamRouter.get('/next',async (req,res) => {
             }
             
         })
+        console.log(mostUpvotedStream);
        
         if(!mostUpvotedStream){
             return res.json({
@@ -240,7 +272,7 @@ StreamRouter.get('/next',async (req,res) => {
             })
         }
         console.log(mostUpvotedStream);
-
+        console.log(fromButton + "fromButton");
     
         await Promise.all([prisma.currentStream.upsert({
             where:{
@@ -259,11 +291,11 @@ StreamRouter.get('/next',async (req,res) => {
                 id:mostUpvotedStream.id,
             },
             data:{
-                played:true,
+                currentlyPlayed:true,
                 playedTs:new Date()
             }
         })])
-        console.log('hi there');
+        
     
         return res.json({
             mostUpvotedStream:mostUpvotedStream
