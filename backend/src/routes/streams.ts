@@ -239,7 +239,6 @@ StreamRouter.get('/next',async (req,res) => {
                 }
                 
             })
-            console.log(PrevMostUpvotedStream);
             if(PrevMostUpvotedStream){
                 await prisma.stream.update({
                     where:{
@@ -264,15 +263,14 @@ StreamRouter.get('/next',async (req,res) => {
             }
             
         })
-        console.log(mostUpvotedStream);
+    
        
         if(!mostUpvotedStream){
             return res.json({
                 message : "currently no stream exists"
             })
         }
-        console.log(mostUpvotedStream);
-        console.log(fromButton + "fromButton");
+
     
         await Promise.all([prisma.currentStream.upsert({
             where:{
