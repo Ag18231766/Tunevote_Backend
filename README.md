@@ -10,3 +10,4 @@
 * youtube-search-api
 * Zod
 * live link : https://tune-vote.vercel.app/
+* frontend Repo : https://github.com/Ag18231766/TuneVote
